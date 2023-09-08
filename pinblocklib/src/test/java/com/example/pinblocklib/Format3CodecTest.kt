@@ -7,6 +7,15 @@ import org.junit.Assert.*
 class Format3CodecTest {
 
     @Test
+    fun encodeDecode_isCorrect() {
+        val pin = "1234567890"
+        val codec = Format3Codec()
+
+        assertEquals(16, codec.encode(pin).length)
+        assertEquals(pin, codec.decode(codec.encode(pin)))
+    }
+
+    @Test
     fun decode_isCorrect() {
         val codec = Format3Codec()
         codec.setParameters(mapOf("pan" to "43219876543210987"))
