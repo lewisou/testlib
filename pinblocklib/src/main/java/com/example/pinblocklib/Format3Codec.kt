@@ -1,5 +1,6 @@
 import com.example.pinblocklib.CodecException
 import com.example.pinblocklib.PinBlockCodec
+import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
 import kotlin.random.Random
@@ -12,6 +13,26 @@ class Format3Codec() : PinBlockCodec() {
 
     // Xor the pan and the pin
     override fun encode(pin: String): String {
+        val bytes = encodeToBytes(pin)
+        return bytes.joinToString("") { "%02x".format(it) }.uppercase()
+    }
+
+    // Perform the Xor and get back the pin.
+    override fun decode(block: String): String {
+        if(block.length != 16) {
+            throw CodecException("The block length must be 16.")
+        }
+
+        if(!block.all { char -> isHexDigit(char) }) {
+            throw CodecException("The block can only contains digits.")
+        }
+
+        val nibbles = block.map { c -> c.digitToInt(16).toByte() }
+
+        return decodeFromNibbles(nibbles.toTypedArray())
+    }
+
+    override fun encodeToBytes(pin: String): Array<Byte> {
         val pinBytes = preparePin(pin)
 
         val pinBlockBytes = pan.zip(pinBytes) { pa, pi ->
@@ -32,22 +53,27 @@ class Format3Codec() : PinBlockCodec() {
                 rsBytes.add(element)
             }
         }
-        return rsBytes.joinToString("") { "%02x".format(it) }.uppercase()
+        return rsBytes.toTypedArray()
     }
 
-    // Perform the Xor and get back the pin.
-    override fun decode(block: String): String {
-        if(block.length != 16) {
-            throw CodecException("The block length must be 16.")
+    override fun decodeFromBytes(block: Array<Byte>): String {
+        if(block.size != 8) {
+            throw CodecException("Block len is wrong")
         }
 
-        if(!block.all { char -> isHexDigit(char) }) {
-            throw CodecException("The block can only contains digits.")
+        val nibbles = mutableListOf<Byte>()
+        for(i in block.indices) {
+            val v1: Byte = (block[i].toInt() shr 4).toByte() and 0x0f
+            val v2: Byte = block[i] and 0x0f
+            nibbles.add(v1)
+            nibbles.add(v2)
         }
 
-        val blockBytes = block.map { c -> c.digitToInt(16).toByte() }
+        return decodeFromNibbles(nibbles.toTypedArray())
+    }
 
-        val pinBytes = pan.zip(blockBytes) { pa, bl ->
+    fun decodeFromNibbles(nibbleBlock: Array<Byte>): String {
+        val pinBytes = pan.zip(nibbleBlock) { pa, bl ->
             pa xor bl
         }
 

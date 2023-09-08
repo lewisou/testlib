@@ -7,7 +7,7 @@ import org.junit.Assert.*
 class Format3CodecTest {
 
     @Test
-    fun encodeDecode_isCorrect() {
+    fun encodeDecodeStr_isCorrect() {
         val pin = "1234567890"
         val codec = Format3Codec()
 
@@ -16,10 +16,30 @@ class Format3CodecTest {
     }
 
     @Test
+    fun encodeDecodeBytes_isCorrect() {
+        val pin = "1234567890"
+        val codec = Format3Codec()
+
+        assertEquals(8, codec.encodeToBytes(pin).size)
+        assertEquals(pin, codec.decodeFromBytes(codec.encodeToBytes(pin)))
+    }
+
+
+    @Test
     fun decode_isCorrect() {
         val codec = Format3Codec()
         codec.setParameters(mapOf("pan" to "43219876543210987"))
         val pin = codec.decode("3412AC0EFC34066C")
+        assertEquals("1234", pin)
+    }
+
+    @Test
+    fun decodeFromBytes_isCorrect() {
+        val codec = Format3Codec()
+        codec.setParameters(mapOf("pan" to "43219876543210987"))
+        val pin = codec.decodeFromBytes(arrayOf(
+            0x34.toByte(), 0x12.toByte(), 0xAC.toByte(), 0x0E.toByte(), 0xFC.toByte(), 0x34.toByte(), 0x06.toByte(), 0x6C.toByte()
+        ))
         assertEquals("1234", pin)
     }
 
@@ -31,6 +51,34 @@ class Format3CodecTest {
 
         assertEquals("3412AC", block.substring(0, 6))
         assertEquals(16, block.length)
+    }
+
+    @Test
+    fun encodeToBytes_isCorrect() {
+        val codec = Format3Codec()
+        codec.setParameters(mapOf("pan" to "43219876543210987"))
+        val block = codec.encodeToBytes("1234")
+
+        assertArrayEquals(arrayOf(0x34.toByte(), 0x12.toByte(), 0xAC.toByte()), block.copyOfRange(0, 3))
+        assertEquals(8, block.size)
+    }
+
+
+    @Test
+    fun decodeFromNibbles_isCorrect() {
+        val codec = Format3Codec()
+        codec.setParameters(mapOf("pan" to "43219876543210987"))
+        val pin = codec.decodeFromNibbles(arrayOf(
+            0x3.toByte(), 0x4,
+            0x1.toByte(), 0x2,
+            0xA.toByte(), 0xC,
+            0x0.toByte(), 0xE,
+            0xF.toByte(), 0xC,
+            0x3.toByte(), 0x4,
+            0x0.toByte(), 0x6,
+            0x6.toByte(), 0xC
+        ))
+        assertEquals("1234", pin)
     }
 
     @Test

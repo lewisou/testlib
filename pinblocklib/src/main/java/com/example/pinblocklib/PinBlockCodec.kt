@@ -11,6 +11,12 @@ abstract class PinBlockCodec {
     abstract fun encode(pin: String): String
     abstract fun decode(block: String): String
 
+    // In case you want the byte array to transmit
+    abstract fun encodeToBytes(pin: String): Array<Byte>
+
+    // In case you want to decode the recieved Byte array.
+    abstract fun decodeFromBytes(block: Array<Byte>): String
+
     // A method used to update the pan.
     // Some other codecs don't have any parameters so we use a separate method to set the pan for IOS-3.
     abstract fun setParameters(params: Map<String, Any>)
