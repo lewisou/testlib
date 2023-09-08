@@ -35,41 +35,23 @@ class Format3Codec() : PinBlockCodec() {
     override fun encodeToBytes(pin: String): Array<Byte> {
         val pinBytes = preparePin(pin)
 
-        val pinBlockBytes = pan.zip(pinBytes) { pa, pi ->
+        val nibblesBytes = pan.zip(pinBytes) { pa, pi ->
             pa xor pi
         }
 
-        if(pinBlockBytes.size != 16) {
+        if(nibblesBytes.size != 16) {
             throw CodecException("The block should be 16 digits long")
         }
-
-        val rsBytes = mutableListOf<Byte>()
-        var element: Byte = 0
-        for(i in pinBlockBytes.indices) {
-            if (i % 2 == 0) {
-                element = setHiNibbleValue(pinBlockBytes[i])
-            } else {
-                element = element or setLowNibbleValue(pinBlockBytes[i])
-                rsBytes.add(element)
-            }
-        }
-        return rsBytes.toTypedArray()
+        return nibblesToBytes(nibblesBytes.toTypedArray())
     }
 
     override fun decodeFromBytes(block: Array<Byte>): String {
         if(block.size != 8) {
-            throw CodecException("Block len is wrong")
+            throw CodecException("The block length is wrong.")
         }
 
-        val nibbles = mutableListOf<Byte>()
-        for(i in block.indices) {
-            val v1: Byte = (block[i].toInt() shr 4).toByte() and 0x0f
-            val v2: Byte = block[i] and 0x0f
-            nibbles.add(v1)
-            nibbles.add(v2)
-        }
-
-        return decodeFromNibbles(nibbles.toTypedArray())
+        val nibbles = bytesToNibbles(block)
+        return decodeFromNibbles(nibbles)
     }
 
     fun decodeFromNibbles(nibbleBlock: Array<Byte>): String {
@@ -137,5 +119,33 @@ class Format3Codec() : PinBlockCodec() {
         private fun setHiNibbleValue(value: Byte): Byte = (0xF0 and (value.toInt() shl 4)).toByte()
 
         private fun setLowNibbleValue(value: Byte): Byte = (0x0F and value.toInt()).toByte()
+
+        fun bytesToNibbles(block: Array<Byte>): Array<Byte> {
+            val nibbles = mutableListOf<Byte>()
+            for(i in block.indices) {
+                val v1: Byte = (block[i].toInt() shr 4).toByte() and 0x0f
+                val v2: Byte = block[i] and 0x0f
+                nibbles.add(v1)
+                nibbles.add(v2)
+            }
+            return nibbles.toTypedArray()
+        }
+
+        fun nibblesToBytes(nibbles: Array<Byte>): Array<Byte> {
+            if(nibbles.size % 2 != 0) {
+                throw CodecException("Internal error, the nibbles length is not a even number.")
+            }
+            val rs = mutableListOf<Byte>()
+            var element: Byte = 0
+            for(i in nibbles.indices) {
+                if (i % 2 == 0) {
+                    element = setHiNibbleValue(nibbles[i])
+                } else {
+                    element = element or setLowNibbleValue(nibbles[i])
+                    rs.add(element)
+                }
+            }
+            return rs.toTypedArray()
+        }
     }
 }

@@ -5,7 +5,6 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class Format3CodecTest {
-
     @Test
     fun encodeDecodeStr_isCorrect() {
         val pin = "1234567890"
@@ -63,6 +62,34 @@ class Format3CodecTest {
         assertEquals(8, block.size)
     }
 
+    @Test
+    fun nibblesToBytes_isCorrect() {
+        val rs = Format3Codec.nibblesToBytes(arrayOf(
+            0x3.toByte(), 0x4.toByte(),
+            0x5.toByte(), 0x6.toByte(),
+            0xf.toByte(), 0xf.toByte(),
+            0xe.toByte(), 0xf.toByte(),
+            0xd.toByte(), 0xf.toByte(),
+        ))
+
+        assertArrayEquals(arrayOf(0x34.toByte(), 0x56.toByte(), 0xff.toByte(), 0xef.toByte(), 0xdf.toByte()),
+            rs)
+    }
+
+    @Test
+    fun bytesToNibbles_isCorrect() {
+        val rs = Format3Codec.bytesToNibbles(arrayOf(
+            0x34.toByte(), 0x56.toByte(), 0xff.toByte(),
+            0xef.toByte(), 0xdf.toByte()))
+
+        assertArrayEquals(arrayOf(
+            0x3.toByte(), 0x4.toByte(),
+            0x5.toByte(), 0x6.toByte(),
+            0xf.toByte(), 0xf.toByte(),
+            0xe.toByte(), 0xf.toByte(),
+            0xd.toByte(), 0xf.toByte(),
+        ), rs)
+    }
 
     @Test
     fun decodeFromNibbles_isCorrect() {
