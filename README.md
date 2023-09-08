@@ -7,7 +7,7 @@ https://github.com/lewisou/testlib/blob/main/pinblocklib/src/test/java/com/examp
 # The library interface:
 https://github.com/lewisou/testlib/blob/main/pinblocklib/src/main/java/com/example/pinblocklib/PinBlockCodec.kt
 
-# Exmaples:
+# Examples:
 
 ``` 
 val codec = PinBlockCodec.getCodec(PinBlockCodec.Format.ISO_3)
