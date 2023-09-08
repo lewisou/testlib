@@ -1,5 +1,6 @@
 package com.example.pinblocklib
 
+import Format3Codec
 import org.junit.Test
 
 import org.junit.Assert.*

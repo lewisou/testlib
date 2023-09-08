@@ -1,5 +1,6 @@
 package com.example.pinblocklib
 
+import Format3Codec
 import org.junit.Test
 import org.junit.Assert.*
 
@@ -18,7 +19,7 @@ class Format3CodecTest {
         val codec = Format3Codec()
         codec.setParameters(mapOf("pan" to "43219876543210987"))
         val block = codec.encode("1234")
-        print(block)
+
         assertEquals("3412AC", block.substring(0, 6))
         assertEquals(16, block.length)
     }
