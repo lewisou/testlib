@@ -4,6 +4,9 @@ import kotlin.experimental.or
 import kotlin.experimental.xor
 import kotlin.random.Random
 
+/**
+ * ISO-3 Codec
+ */
 class Format3Codec() : PinBlockCodec() {
     var pan = preparePan("1111222233334444")
 
@@ -81,6 +84,7 @@ class Format3Codec() : PinBlockCodec() {
                 throw CodecException("The pan can only contains digits.")
             }
 
+            // The last digit is the check digit.
             val pan12 = panStr.substring(panStr.length - digitTake - 1, panStr.length - 1)
             return arrayOf(0x0.toByte(), 0x0, 0x0, 0x0) + pan12.map { c -> c.digitToInt(16).toByte() }
         }

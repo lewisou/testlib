@@ -61,4 +61,19 @@ class Format3CodecTest {
         assertEquals(16, rs.size)
     }
 
+    @Test
+    fun preparePin2_isCorrent() {
+        val pin = "123456789012"
+        val rs = Format3Codec.preparePin(pin)
+        assertArrayEquals(arrayOf(
+            0x3.toByte(), pin.length.toByte(),
+            0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0x0, 0x1.toByte(), 0x2.toByte(),
+        ), rs.copyOfRange(0, pin.length + 2))
+
+        for (v in rs.copyOfRange(pin.length + 2, rs.size)) {
+            assertTrue(v in 0..0xf)
+        }
+
+        assertEquals(16, rs.size)
+    }
 }
