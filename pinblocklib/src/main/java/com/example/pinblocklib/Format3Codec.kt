@@ -11,27 +11,6 @@ import kotlin.random.Random
 class Format3Codec() : PinBlockCodec() {
     var pan = preparePan("1111222233334444")
 
-    // Xor the pan and the pin
-    override fun encode(pin: String): String {
-        val bytes = encodeToBytes(pin)
-        return bytes.joinToString("") { "%02x".format(it) }.uppercase()
-    }
-
-    // Perform the Xor and get back the pin.
-    override fun decode(block: String): String {
-        if(block.length != 16) {
-            throw CodecException("The block length must be 16.")
-        }
-
-        if(!block.all { char -> isHexDigit(char) }) {
-            throw CodecException("The block can only contains digits.")
-        }
-
-        val nibbles = block.map { c -> c.digitToInt(16).toByte() }
-
-        return decodeFromNibbles(nibbles.toTypedArray())
-    }
-
     override fun encodeToBytes(pin: String): Array<Byte> {
         val pinBytes = preparePin(pin)
 
@@ -52,6 +31,27 @@ class Format3Codec() : PinBlockCodec() {
 
         val nibbles = bytesToNibbles(block)
         return decodeFromNibbles(nibbles)
+    }
+
+    // Xor the pan and the pin
+    override fun encode(pin: String): String {
+        val bytes = encodeToBytes(pin)
+        return bytes.joinToString("") { "%02x".format(it) }.uppercase()
+    }
+
+    // Perform the Xor and get back the pin.
+    override fun decode(block: String): String {
+        if(block.length != 16) {
+            throw CodecException("The block length must be 16.")
+        }
+
+        if(!block.all { char -> isHexDigit(char) }) {
+            throw CodecException("The block can only contains digits.")
+        }
+
+        val nibbles = block.map { c -> c.digitToInt(16).toByte() }
+
+        return decodeFromNibbles(nibbles.toTypedArray())
     }
 
     // A method used to update the pan.

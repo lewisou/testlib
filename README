@@ -1,5 +1,0 @@
-Please look into:
-https://github.com/lewisou/testlib/blob/main/pinblocklib/src/main/java/com/example/pinblocklib/Format3Codec.kt
-
-Unit tests are here:
-https://github.com/lewisou/testlib/blob/main/pinblocklib/src/test/java/com/example/pinblocklib/Format3CodecTest.kt
