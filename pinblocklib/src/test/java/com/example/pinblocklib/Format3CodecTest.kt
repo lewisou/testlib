@@ -160,4 +160,15 @@ class Format3CodecTest {
 
         assertEquals(16, rs.size)
     }
+
+    @Test
+    fun isHexDigit_isCorrent() {
+        assertTrue(Format3Codec.isHexDigit('1'))
+        assertTrue(Format3Codec.isHexDigit('9'))
+        assertTrue(Format3Codec.isHexDigit('a'))
+        assertTrue(Format3Codec.isHexDigit('F'))
+
+        assertFalse(Format3Codec.isHexDigit('G'))
+        assertFalse(Format3Codec.isHexDigit('g'))
+    }
 }

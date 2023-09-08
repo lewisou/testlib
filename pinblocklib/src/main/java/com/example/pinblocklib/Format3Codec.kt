@@ -54,6 +54,14 @@ class Format3Codec() : PinBlockCodec() {
         return decodeFromNibbles(nibbles)
     }
 
+    // A method used to update the pan.
+    // Some other codecs don't have any parameters so we use a separate method to set the pan for IOS-3.
+    override fun setParameters(params: Map<String, Any>) {
+        if("pan" in params) {
+            pan = preparePan(params["pan"] as String)
+        }
+    }
+
     fun decodeFromNibbles(nibbleBlock: Array<Byte>): String {
         val pinBytes = pan.zip(nibbleBlock) { pa, bl ->
             pa xor bl
@@ -70,14 +78,6 @@ class Format3Codec() : PinBlockCodec() {
 
         val orgPinBytes = pinBytes.subList(2, 2 + pinLen)
         return orgPinBytes.joinToString("") { b -> b.toString() }
-    }
-
-    // A method used to update the pan.
-    // Some other codecs don't have any parameters so we use a separate method to set the pan for IOS-3.
-    override fun setParameters(params: Map<String, Any>) {
-        if("pan" in params) {
-            pan = preparePan(params["pan"] as String)
-        }
     }
 
     companion object {
@@ -146,6 +146,11 @@ class Format3Codec() : PinBlockCodec() {
                 }
             }
             return rs.toTypedArray()
+        }
+
+        private val hexReg = Regex("[0-9a-fA-F]")
+        fun isHexDigit(c: Char): Boolean {
+            return hexReg.matches(c.toString())
         }
     }
 }
