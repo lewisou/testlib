@@ -134,8 +134,7 @@ class Format3CodecTest {
         val pin = "1234"
         val rs = Format3Codec.preparePin(pin)
         assertArrayEquals(arrayOf(
-            0x3.toByte(), 0x4,
-            0x1, 0x2, 0x3, 0x4,
+            0x3.toByte(), 0x4, 0x1, 0x2, 0x3, 0x4,
         ), rs.copyOfRange(0, pin.length + 2))
 
         for (v in rs.copyOfRange(pin.length + 2, rs.size)) {
