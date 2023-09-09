@@ -4,6 +4,9 @@ https://github.com/lewisou/testlib/blob/main/pinblocklib/src/main/java/com/examp
 # Unit tests:
 https://github.com/lewisou/testlib/blob/main/pinblocklib/src/test/java/com/example/pinblocklib/Format3CodecTest.kt
 
+# The calculation proof using the hardcoded PAN 1111222233334444
+https://github.com/lewisou/testlib/blob/main/pinblocklib/src/test/java/com/example/pinblocklib/PinBlockCodecTest.kt
+
 # The library interface:
 https://github.com/lewisou/testlib/blob/main/pinblocklib/src/main/java/com/example/pinblocklib/PinBlockCodec.kt
 
