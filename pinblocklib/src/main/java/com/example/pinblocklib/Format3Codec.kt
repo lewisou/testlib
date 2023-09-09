@@ -55,7 +55,7 @@ class Format3Codec() : PinBlockCodec() {
             throw CodecException("The block length must be 16.")
         }
 
-        if(!block.all { char -> isHexDigit(char) }) {
+        if(!isHexDigits(block)) {
             throw CodecException("The block can only contains digits.")
         }
 
@@ -106,7 +106,7 @@ class Format3Codec() : PinBlockCodec() {
                 throw CodecException("pan digits must be longer than 13.")
             }
 
-            if(!panStr.all { char -> isHexDigit(char) }) {
+            if(!isHexDigits(panStr)) {
                 throw CodecException("The pan can only contains digits.")
             }
 
@@ -126,7 +126,7 @@ class Format3Codec() : PinBlockCodec() {
                 throw CodecException("The pin length must be in range (4 - 12).")
             }
 
-            if(!pinStr.all { char -> isHexDigit(char) }) {
+            if(!isHexDigits(pinStr)) {
                 throw CodecException("The pin can only contains digits.")
             }
 
@@ -179,9 +179,10 @@ class Format3Codec() : PinBlockCodec() {
             return rs.toTypedArray()
         }
 
-        private val hexReg = Regex("[0-9a-fA-F]")
-        fun isHexDigit(c: Char): Boolean {
-            return hexReg.matches(c.toString())
+        private val hexReg = Regex("[0-9a-fA-F]+")
+
+        fun isHexDigits(str: String): Boolean {
+            return hexReg.matches(str)
         }
     }
 }

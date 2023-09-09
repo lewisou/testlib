@@ -161,13 +161,11 @@ class Format3CodecTest {
     }
 
     @Test
-    fun isHexDigit_isCorrent() {
-        assertTrue(Format3Codec.isHexDigit('1'))
-        assertTrue(Format3Codec.isHexDigit('9'))
-        assertTrue(Format3Codec.isHexDigit('a'))
-        assertTrue(Format3Codec.isHexDigit('F'))
-
-        assertFalse(Format3Codec.isHexDigit('G'))
-        assertFalse(Format3Codec.isHexDigit('g'))
+    fun isHexDigits_isCorrent() {
+        assertTrue(Format3Codec.isHexDigits("1234567890abcdefABCDEF1234567890abcdefABCDEF"))
+        assertFalse(Format3Codec.isHexDigits("1234567890abcdefABCDEF1234567890abcdefABCDEFG"))
+        assertFalse(Format3Codec.isHexDigits("gjkl"))
+        assertFalse(Format3Codec.isHexDigits(">1"))
+        assertFalse(Format3Codec.isHexDigits(">"))
     }
 }
