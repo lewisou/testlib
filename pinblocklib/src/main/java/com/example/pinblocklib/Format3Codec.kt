@@ -15,16 +15,16 @@ class Format3Codec() : PinBlockCodec() {
      * Encode the pin to a byte array for transmission
      */
     override fun encodeToBytes(pin: String): Array<Byte> {
-        val pinBytes = preparePin(pin)
+        val pinNibbles = preparePin(pin)
 
-        val nibbles = pan.zip(pinBytes) { pa, pi ->
+        val blockNibbles = pan.zip(pinNibbles) { pa, pi ->
             pa xor pi
         }
 
-        if(nibbles.size != 16) {
-            throw CodecException("The block should be 16 digits long")
+        if(blockNibbles.size != 16) {
+            throw CodecException("The block length is wrong.")
         }
-        return nibblesToBytes(nibbles.toTypedArray())
+        return nibblesToBytes(blockNibbles.toTypedArray())
     }
 
     /**
@@ -52,11 +52,11 @@ class Format3Codec() : PinBlockCodec() {
      */
     override fun decode(block: String): String {
         if(block.length != 16) {
-            throw CodecException("The block length must be 16.")
+            throw CodecException("The block length is wrong.")
         }
 
         if(!isHexDigits(block)) {
-            throw CodecException("The block can only contains digits.")
+            throw CodecException("The block can only contains hex digits.")
         }
 
         val nibbles = block.map { c -> c.digitToInt(16).toByte() }
@@ -70,30 +70,30 @@ class Format3Codec() : PinBlockCodec() {
      * Example: codec.setParameters(mapOf("pan" to "43219876543210987"))
      */
     override fun setParameters(params: Map<String, Any>) {
-        if("pan" in params) {
-            pan = preparePan(params["pan"] as String)
+        val key = "pan"
+        if(key in params) {
+            pan = preparePan(params[key] as String)
         }
     }
 
     /**
      * Internal decode function that performs XOR and returns the original pin.
      */
-    fun decodeFromNibbles(blockInNibbles: Array<Byte>): String {
-        val pinBytes = pan.zip(blockInNibbles) { pa, bl ->
+    fun decodeFromNibbles(blockNibbles: Array<Byte>): String {
+        val pinNibbles = pan.zip(blockNibbles) { pa, bl ->
             pa xor bl
         }
 
-        if(pinBytes[0] != 3.toByte()) {
-            throw CodecException("Invalid block format.")
+        if(pinNibbles[0] != 3.toByte()) {
+            throw CodecException("The block format is invalid.")
         }
 
-        val pinLen = pinBytes[1]
+        val pinLen = pinNibbles[1]
         if(pinLen < 4 || pinLen > 12) {
-            throw CodecException("Invalid block with the wrong pin length.")
+            throw CodecException("The block is invalid and the pin length is invalid.")
         }
 
-        val orgPinBytes = pinBytes.subList(2, 2 + pinLen)
-        return orgPinBytes.joinToString("") { b -> b.toString() }
+        return pinNibbles.subList(2, 2 + pinLen).joinToString("") { b -> b.toString() }
     }
 
     companion object {
@@ -103,12 +103,14 @@ class Format3Codec() : PinBlockCodec() {
          */
         fun preparePan(panStr: String): Array<Byte> {
             val digitTake = 12
+
+            // Plus the last digit. The total length is digitTake + 1
             if(panStr.length < digitTake + 1) {
-                throw CodecException("pan digits must be longer than 13.")
+                throw CodecException("Pan digits must be longer than ${digitTake}.")
             }
 
             if(!isHexDigits(panStr)) {
-                throw CodecException("The pan can only contains digits.")
+                throw CodecException("The pan can only contains hex digits.")
             }
 
             // The last digit is the check digit.
@@ -117,10 +119,9 @@ class Format3Codec() : PinBlockCodec() {
         }
 
         /**
-         * The format 3 pin preparation
+         * The format 3 pin preparation:
          * The first nibble is 0x3 followed by the length of the PIN
-         * and the PIN padded with random values (0 - 15).
-         * The random value from X’0′ to X’F’
+         * and the PIN is padded with random values (0 - 15).
          */
         fun preparePin(pinStr: String): Array<Byte> {
             if(pinStr.length < 4 || pinStr.length > 12) {
@@ -131,11 +132,11 @@ class Format3Codec() : PinBlockCodec() {
                 throw CodecException("The pin can only contains digits.")
             }
 
-            val lastPadding = (1..16 - pinStr.length - 2).map { _ -> Random.nextInt(0, 0x0F + 1).toByte() }
+            val padding = (1..16 - pinStr.length - 2).map { _ -> Random.nextInt(0, 0x0F + 1).toByte() }
 
             return arrayOf(0x3.toByte(), pinStr.length.toByte()) +
                     pinStr.map { c -> c.digitToInt(16).toByte() } +
-                    lastPadding
+                    padding
         }
 
         private fun setHiNibbleValue(value: Byte): Byte = (0xF0 and (value.toInt() shl 4)).toByte()
@@ -143,15 +144,15 @@ class Format3Codec() : PinBlockCodec() {
         private fun setLowNibbleValue(value: Byte): Byte = (0x0F and value.toInt()).toByte()
 
         /**
-         * Here a nibble is 4 bits long
-         * A byte contains 2 nibbles and it is 8 bits long
-         * The conversion from bytes to nibbles
+         * This method is to convert from bytes to nibbles.
+         * Here a nibble is 4 bits long.
+         * And a byte contains 2 nibbles and it is 8 bits long.
          */
-        fun bytesToNibbles(block: Array<Byte>): Array<Byte> {
+        fun bytesToNibbles(bytes: Array<Byte>): Array<Byte> {
             val nibbles = mutableListOf<Byte>()
-            for(i in block.indices) {
-                val v1: Byte = (block[i].toInt() shr 4).toByte() and 0x0f
-                val v2: Byte = block[i] and 0x0f
+            for(i in bytes.indices) {
+                val v1: Byte = (bytes[i].toInt() shr 4).toByte() and 0x0f
+                val v2: Byte = bytes[i] and 0x0f
                 nibbles.add(v1)
                 nibbles.add(v2)
             }
@@ -159,31 +160,30 @@ class Format3Codec() : PinBlockCodec() {
         }
 
         /**
-         * Here a nibble is 4 bits long
-         * A byte contains 2 nibbles and it is 8 bits long
-         * The conversion from nibbles to bytes
+         * This method is to convert from nibbles to bytes.
+         * Here a nibble is 4 bits long.
+         * And a byte contains 2 nibbles and it is 8 bits long.
          */
         fun nibblesToBytes(nibbles: Array<Byte>): Array<Byte> {
             if(nibbles.size % 2 != 0) {
-                throw CodecException("Internal error, the nibbles length is not a even number.")
+                throw CodecException("Internal error, the nibbles length is not an even number.")
             }
-            val rs = mutableListOf<Byte>()
-            var element: Byte = 0
+            val bytes = mutableListOf<Byte>()
+            var aByte: Byte = 0
             for(i in nibbles.indices) {
                 if (i % 2 == 0) {
-                    element = setHiNibbleValue(nibbles[i])
+                    aByte = setHiNibbleValue(nibbles[i])
                 } else {
-                    element = element or setLowNibbleValue(nibbles[i])
-                    rs.add(element)
+                    aByte = aByte or setLowNibbleValue(nibbles[i])
+                    bytes.add(aByte)
                 }
             }
-            return rs.toTypedArray()
+            return bytes.toTypedArray()
         }
-
-        private val hexReg = Regex("[0-9a-fA-F]+")
 
         fun isHexDigits(str: String): Boolean {
             return hexReg.matches(str)
         }
+        private val hexReg = Regex("[0-9a-fA-F]+")
     }
 }
