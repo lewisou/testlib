@@ -17,14 +17,14 @@ class Format3Codec() : PinBlockCodec() {
     override fun encodeToBytes(pin: String): Array<Byte> {
         val pinBytes = preparePin(pin)
 
-        val nibblesBytes = pan.zip(pinBytes) { pa, pi ->
+        val nibbles = pan.zip(pinBytes) { pa, pi ->
             pa xor pi
         }
 
-        if(nibblesBytes.size != 16) {
+        if(nibbles.size != 16) {
             throw CodecException("The block should be 16 digits long")
         }
-        return nibblesToBytes(nibblesBytes.toTypedArray())
+        return nibblesToBytes(nibbles.toTypedArray())
     }
 
     /**
@@ -40,7 +40,7 @@ class Format3Codec() : PinBlockCodec() {
     }
 
     /**
-     * Encode the pin and return the block in string format
+     * Encode the pin and return the block in string format. Each letter is a 4-bit long value (\x0 - \xF).
      */
     override fun encode(pin: String): String {
         val bytes = encodeToBytes(pin)
@@ -48,7 +48,7 @@ class Format3Codec() : PinBlockCodec() {
     }
 
     /**
-     * Decode the block in string format
+     * Decode the block in string format. Each letter is a 4-bit long value (\x0 - \xF).
      */
     override fun decode(block: String): String {
         if(block.length != 16) {
@@ -67,6 +67,7 @@ class Format3Codec() : PinBlockCodec() {
     /**
      * The method to update the pan.
      * Some other codecs don't have any parameters so a separate method is used to set the pan for IOS-3.
+     * Example: codec.setParameters(mapOf("pan" to "43219876543210987"))
      */
     override fun setParameters(params: Map<String, Any>) {
         if("pan" in params) {
@@ -75,10 +76,10 @@ class Format3Codec() : PinBlockCodec() {
     }
 
     /**
-     * An internal decode function that performs an XOR and returns the raw pin.
+     * Internal decode function that performs XOR and returns the original pin.
      */
-    fun decodeFromNibbles(nibbleBlock: Array<Byte>): String {
-        val pinBytes = pan.zip(nibbleBlock) { pa, bl ->
+    fun decodeFromNibbles(blockInNibbles: Array<Byte>): String {
+        val pinBytes = pan.zip(blockInNibbles) { pa, bl ->
             pa xor bl
         }
 
